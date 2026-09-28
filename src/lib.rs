@@ -7,3 +7,4 @@ pub mod stdlib;
 pub mod value;
 pub mod testutils;
 pub mod stacktrace;
+pub mod symbol;

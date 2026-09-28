@@ -7,12 +7,13 @@ use crate::stdlib::util::func;
 use crate::value::builtin::{BuiltinFunction, BuiltInFunctionArg, BuiltInFunctionArgs};
 use crate::value::callable::{Callable, Function, Lambda};
 use crate::value::error::{ErrorContext, EvalError};
+use crate::symbol::Sym;
 
 
 //variable assignment, non mutable
-fn let_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn let_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
     let identifier = match args.try_pos(scope, 0)?.try_expression(scope)?{
-        PosExpression{exp: SExpression::Symbol(i), ..}=> Ok(i),
+        PosExpression{exp: SExpression::Symbol(i), ..}=> Ok(*i),
         PosExpression{ ..} => Err(EvalError::InvalidType.trace(scope)),
     }?;
     //if let Some(_) = scope.lookup(identifier) {
@@ -20,11 +21,11 @@ fn let_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) 
     //}
 
     let (evaluated, _) = args.try_pos(scope, 1)?.evaluated(scope)?;
-    scope.insert(identifier.clone(), evaluated.clone());
+    scope.insert(identifier, evaluated.clone());
     Ok((evaluated, EvalContext::none()))
 }
 
-fn get_argument_names(scope: &ScopeRef, possible_args: &BuiltInFunctionArg) -> Result<Vec<String>, ErrorContext> {
+fn get_argument_names(scope: &ScopeRef, possible_args: &BuiltInFunctionArg<'_>) -> Result<Vec<Sym>, ErrorContext> {
     let block_content = match possible_args.try_expression(scope)? {
         PosExpression{exp: SExpression::Block(c), ..} => Ok(c),
         _ => Err(EvalError::InvalidType.trace(scope)),
@@ -32,7 +33,7 @@ fn get_argument_names(scope: &ScopeRef, possible_args: &BuiltInFunctionArg) -> R
     block_content.iter()
         .map(|exp|
             match exp {
-                PosExpression{exp: SExpression::Symbol(i), ..} => Ok(i.clone()),
+                PosExpression{exp: SExpression::Symbol(i), ..} => Ok(*i),
                 _ => Err(EvalError::InvalidType.trace(scope))
             }
         )
@@ -40,17 +41,17 @@ fn get_argument_names(scope: &ScopeRef, possible_args: &BuiltInFunctionArg) -> R
 }
 
 
-fn function_declaration_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
-    let name: String = match args.try_pos(scope, 0)?.try_expression(scope)? {
-        PosExpression{exp: SExpression::Symbol(i), ..} => Ok(i.clone()),
+fn function_declaration_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
+    let name: Sym = match args.try_pos(scope, 0)?.try_expression(scope)? {
+        PosExpression{exp: SExpression::Symbol(i), ..} => Ok(*i),
         _ => Err(EvalError::InvalidType.trace(scope)),
     }?;
 
-    let arg_names: Vec<String> = get_argument_names(scope, args.try_pos(scope, 1)?)?;
+    let arg_names: Vec<Sym> = get_argument_names(scope, &args.try_pos(scope, 1)?)?;
     let body = args.try_pos(scope, 2)?.try_expression(scope)?;
     let function = Function::from(
         scope.clone(),
-        name.clone(),
+        name,
         arg_names,
         body
     );
@@ -59,8 +60,8 @@ fn function_declaration_callback(scope: &ScopeRef, _ctx: EvalContext, args: Buil
     Ok((function_value, EvalContext::none()))
 }
 
-fn lambda_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
-    let arguments: Vec<String> =  get_argument_names(scope, args.try_pos(scope, 0)?)?;
+fn lambda_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
+    let arguments: Vec<Sym> =  get_argument_names(scope, &args.try_pos(scope, 0)?)?;
     let body=  args.try_pos(scope, 1)?.try_expression(scope)?.clone();
     let lambda = Lambda{
         in_scope: scope.clone(),
@@ -71,7 +72,7 @@ fn lambda_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArg
     Ok((lambda_value, EvalContext::none()))
 }
 
-fn if_callback(scope: &ScopeRef, ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn if_callback(scope: &ScopeRef, ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
 
     let (condition, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
     let else_expression = args.try_pos(scope, 2)
@@ -90,13 +91,13 @@ fn if_callback(scope: &ScopeRef, ctx: EvalContext, args: BuiltInFunctionArgs) ->
     }
 }
 
-fn quote_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn quote_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
 
     let exp = args.try_pos(scope, 0)?.try_expression(scope)?;
     Ok( (EvalValue::Reference(ReferenceValue::Expression(exp.clone()).to_rc()), EvalContext::none()) )
 }
 
-fn eval_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn eval_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
     let (arg, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
 
     match &arg {

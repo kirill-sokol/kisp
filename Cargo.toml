@@ -11,11 +11,15 @@ path = "src/lib.rs"
 test = true
 
 [features]
+default = ["repl"]
 functional = []
+# the REPL needs a terminal library that does not build on wasm32; the library itself is dependency free
+repl = ["dep:linefeed"]
 
 [[bin]]
 name = "repl"
 path = "src/bin/repl.rs"
+required-features = ["repl"]
 
 [dependencies]
-linefeed = "0.6"
+linefeed = { version = "0.6", optional = true }

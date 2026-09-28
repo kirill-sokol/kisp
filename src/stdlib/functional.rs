@@ -10,7 +10,7 @@ use crate::value::error::{ErrorContext, EvalError};
 use crate::value::numeric::Numeric;
 use crate::value::list::List;
 
-fn map_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn map_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
 
     let (evaluated_left, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
     let callable = expect_ref_type!(evaluated_left, ReferenceValue::CallableValue(c) => c, scope)?;
@@ -31,7 +31,7 @@ fn map_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) 
     Ok((EvalValue::Reference(ReferenceValue::List(list).to_rc()), EvalContext::none()))
 }
 
-fn filter_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn filter_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
 
     let (evaluated_left, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
     let callable = expect_ref_type!(evaluated_left, ReferenceValue::CallableValue(c) => c, scope)?;
@@ -55,7 +55,7 @@ fn filter_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArg
     Ok((EvalValue::Reference(ReferenceValue::List(list).to_rc()), EvalContext::none()))
 }
 
-fn enumerate_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn enumerate_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
     let (evaluated, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
     let list = expect_ref_type!(evaluated, ReferenceValue::List(list) => list, scope)?;
 
@@ -78,7 +78,7 @@ fn enumerate_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunction
     Ok((EvalValue::Reference(ReferenceValue::List(list).to_rc()), EvalContext::none()))
 }
 
-fn zip_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn zip_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
     let (evaluated_left, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
     let (evaluated_right, _) = args.try_pos(scope, 1)?.evaluated(scope)?;
 
@@ -102,7 +102,7 @@ fn zip_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) 
 
 }
 
-fn reduce_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn reduce_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
 
     let (evaluated_left, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
     let callable = expect_ref_type!(evaluated_left, ReferenceValue::CallableValue(c) => c, scope)?;
@@ -124,7 +124,7 @@ fn reduce_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArg
     ret
 }
 
-fn fold_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn fold_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
     let (initial, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
 
     let (evaluated_middle, _) = args.try_pos(scope, 1)?.evaluated(scope)?;
@@ -147,7 +147,7 @@ fn fold_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs)
 }
 
 
-fn flatten_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs) -> EvalResult {
+fn flatten_callback(scope: &ScopeRef, _ctx: EvalContext, args: BuiltInFunctionArgs<'_>) -> EvalResult {
     let (evaluated, _) = args.try_pos(scope, 0)?.evaluated(scope)?;
     let list = expect_ref_type!(evaluated, ReferenceValue::List(list) => list, scope)?;
 

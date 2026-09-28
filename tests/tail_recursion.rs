@@ -23,3 +23,28 @@ fn sum_of_n(){
     ).unwrap();
     assert_match!(value, EvalValue::Numeric(Numeric::Integer(i)) if i==5050);
 }
+#[test]
+fn tail_call_inside_block(){
+    let (value, _) = quick_result(
+        "
+        (fn id [x] x)
+        (fn loop [n]
+            (if (>= 0 n)
+                0
+                [(id n) (loop (- n 1))]))
+        (loop 20000)
+        "
+    ).unwrap();
+    assert_match!(value, EvalValue::Numeric(Numeric::Integer(i)) if i==0);
+}
+
+#[test]
+fn tail_call_with_accumulator_deep(){
+    let (value, _) = quick_result(
+        "
+        (fn iter [n acc] (if (>= 0 n) acc (iter (- n 1) (+ acc 1))))
+        (iter 100000 0)
+        "
+    ).unwrap();
+    assert_match!(value, EvalValue::Numeric(Numeric::Integer(i)) if i==100000);
+}

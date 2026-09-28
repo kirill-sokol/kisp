@@ -90,8 +90,10 @@ impl<'t> Lexer<'t>{
         Lexer{txt_buffer: data}
     }
 
+    // `abs_position` is a byte offset into the buffer; slicing from it is O(1)
+    // instead of the O(n) `chars().nth(i)` walk from the start of the text.
     fn char_at(&self, i: usize) -> Option<char> {
-        self.txt_buffer.chars().nth(i)
+        self.txt_buffer.get(i..)?.chars().next()
     }
 
     fn char_at_cursor(&self, cursor: &Cursor) -> Option<char>{
@@ -114,17 +116,18 @@ impl<'t> Lexer<'t>{
     }
 
     fn read_identifier(&self, cursor: &Cursor) -> (TokenValue, Cursor) {
-        let ident = self.txt_buffer.chars()
-            .into_iter()
-            .skip(cursor.abs_position)
+        let ident = self.txt_buffer
+            .get(cursor.abs_position..)
+            .unwrap_or("")
+            .chars()
             .take_while(|c| Lexer::is_identifier_char(*c))
             .collect::<String>()
             ;
-        let len = ident.len(); //damn you borrow checker
+        let len = ident.len(); // bytes: abs_position is a byte offset
         (TokenValue::Identifier(ident),cursor.next_columns(len))
     }
 
-    pub fn skip_comment(&self, start: &Cursor) -> (Cursor) {
+    pub fn skip_comment(&self, start: &Cursor) -> Cursor {
         let mut cursor = start.clone();
         if let Some(c) = self.char_at_cursor(&cursor) {
             if c != langchars::COMMENT{ panic!("not a comment start");}
@@ -134,7 +137,8 @@ impl<'t> Lexer<'t>{
             if char == langchars::NEW_LINE{
                 break;
             }
-            cursor = cursor.next_column();
+            // comments may contain multi-byte characters
+            cursor = cursor.next_columns(char.len_utf8());
         }
         cursor
     }

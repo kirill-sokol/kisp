@@ -5,7 +5,7 @@ use crate::stacktrace::StackTrace;
 #[derive(Debug)]
 pub enum EvalError{
     Other(String),
-    UnknownSymbol(String),
+    UnknownSymbol(crate::symbol::Sym),
     CallingNonCallable,
     InvalidType,
     MissingArgument,

@@ -13,7 +13,7 @@ use kisp::value::EvalValue;
 const HISTORY_FILE: &str = ".kisp-history";
 fn main() -> io::Result<()>{
     let interface = Arc::new(Interface::new("REPL for Kirill's Lisp")?);
-    println!("wazzup faggot");
+    println!("kisp - Kirill's Lisp. Multi-line input: end a line with \\");
     interface.set_prompt("kisp> ")?;
     let mut env: Option<ScopeRef> = None;
 

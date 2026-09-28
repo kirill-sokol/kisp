@@ -3,19 +3,20 @@ use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;
 use crate::ast::PosExpression;
 use crate::scope::ScopeRef;
+use crate::symbol::Sym;
 use crate::value::builtin::BuiltinFunction;
 use crate::value::{EvalValue, ReferenceValue};
 
 #[derive(Debug)]
 pub struct Function{
     pub in_scope: ScopeRef,
-    pub name: String,
-    pub arguments: Vec<String>,
+    pub name: Sym,
+    pub arguments: Vec<Sym>,
     pub body: PosExpression,
 }
 
 impl Function{
-    pub fn from(in_scope: ScopeRef, name: String, arguments: Vec<String>, body: &PosExpression) -> Function {
+    pub fn from(in_scope: ScopeRef, name: Sym, arguments: Vec<Sym>, body: &PosExpression) -> Function {
         Function{in_scope, name, arguments, body: body.clone()}
     }
 }
@@ -30,7 +31,7 @@ pub enum Callable{
 #[derive(Debug)]
 pub struct Lambda {
     pub in_scope: ScopeRef,
-    pub arguments: Vec<String>,
+    pub arguments: Vec<Sym>,
     pub body: PosExpression,
 }
 
